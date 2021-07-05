@@ -1,0 +1,67 @@
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: test
+  name: ai-worker-restart
+rules:
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - 'patch'
+  - 'get'
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: ai-worker-restart
+  namespace: test
+subjects:
+- kind: ServiceAccount
+  name: sa-ai-worker-restart
+  namespace: test
+roleRef:
+  kind: Role
+  name: ai-worker-restart
+  apiGroup: ""
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-ai-worker-restart
+  namespace: test
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: restart-ai-worker
+  namespace: test
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: sa-ai-worker-restart
+          tolerations:
+            - effect: NoSchedule
+              key: cattle.io/os
+              operator: Equal
+              value: linux
+          containers:
+          - name: kubectl
+            image: garland/kubectl:1.10.4
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch deployment ai-worker -p '{"spec":{"template":{"metadata":{"labels":{"restarted-by":"'${POD_NAME}'"}}}}}'
+            env:
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+          restartPolicy: OnFailure
