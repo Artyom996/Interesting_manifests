@@ -15,8 +15,8 @@ spec:
   secretName: wildcard-example-com-tls-kreop
   renewBefore: 240h
   dnsNames:
-  - '*.kuber.kreo.net'
-  - kuber.kreo.net
+  - '*.example.example.net'
+  - example.example.net
   issuerRef:
     name: letsencrypt-prod-godaddy-kreop
     kind: ClusterIssuer
@@ -38,8 +38,8 @@ spec:
     solvers:
     - selector:
         dnsNames:
-        - '*.kuber.kreo.net'
-        - kuber.kreo.net
+        - '*.example.example.net'
+        - example.example.net
       dns01:
         webhook:
           config:
