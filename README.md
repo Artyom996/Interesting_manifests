@@ -3,3 +3,5 @@
 2. The second is the automatic distribution of an https certificate using cert-manager and let's encrypt. Before adding the manifest, you need to install the cert-manager. 
    And also in the manifest, you need to change the parameters (email, tolerations, hosts) to your own.
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Before deploying wildcard certificates, you need to initialize cert-manager and godaddy webhook in kubernetes.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
