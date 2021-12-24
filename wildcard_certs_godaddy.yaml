@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: godaddy-api-key-kreop
+type: Opaque
+stringData:
+  token: <your_api_key>:<your_api_secret_key>
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: wildcard-example-com-godaddy-kreop
+spec:
+  secretName: wildcard-example-com-tls-kreop
+  renewBefore: 240h
+  dnsNames:
+  - '*.kuber.kreo.net'
+  - kuber.kreo.net
+  issuerRef:
+    name: letsencrypt-prod-godaddy-kreop
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod-godaddy-kreop
+spec:
+  acme:
+    # ACME Server
+    # prod : https://acme-v02.api.letsencrypt.org/directory
+    # staging : https://acme-staging-v02.api.letsencrypt.org/directory
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # ACME Email address
+    email: <your_email>
+    privateKeySecretRef:
+      name: letsencrypt-production-godaddy-test-kreop # staging or production
+    solvers:
+    - selector:
+        dnsNames:
+        - '*.kuber.kreo.net'
+        - kuber.kreo.net
+      dns01:
+        webhook:
+          config:
+            apiKeySecretRef:
+              name: godaddy-api-key-kreop
+              key: token
+            production: true
+            ttl: 600
+          groupName: acme.mycompany.com
+          solverName: godaddy
+          podTemplate:
+            spec:
+              tolerations:
+              - effect: NoSchedule
+                key: cattle.io/os
+                operator: Equal
+                value: linux
+              nodeSelector:
+                "elastic": test
